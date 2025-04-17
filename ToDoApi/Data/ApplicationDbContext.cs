@@ -9,5 +9,6 @@ namespace ToDoApi.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<ToDoItem> TodoItems { get; set; }
+        public DbSet<User> Users { get; set; } = null!;
     }
 }
