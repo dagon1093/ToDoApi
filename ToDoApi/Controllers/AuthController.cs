@@ -37,7 +37,7 @@ namespace ToDoApi.Controllers
             return Ok(new { message = "Регистрация успешна" });
         }
 
-        [HttpPost("/login")]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == model.Username);

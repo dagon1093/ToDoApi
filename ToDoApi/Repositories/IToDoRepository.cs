@@ -9,5 +9,6 @@ namespace ToDoApi.Repositories
         Task<ToDoItem> AddAsync(ToDoItem todoItem);
         Task UpdateAsync(ToDoItem todoItem);
         Task DeleteAsync(int id);
+        Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId);
     }
 }

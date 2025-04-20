@@ -9,5 +9,6 @@ namespace ToDoApi.Services
         Task<ToDoItem> CreateTodoAsync(ToDoItem todoItem);
         Task UpdateTodoAsync(int id, ToDoItem todoItem);
         Task DeleteTodoAsync(int id);
+        Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId);
     }
 }
