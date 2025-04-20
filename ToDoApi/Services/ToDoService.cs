@@ -38,5 +38,10 @@ namespace ToDoApi.Services
         {
             await _toDoRepository.DeleteAsync(id);
         }
+
+        public async Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId)
+        {
+            return await _toDoRepository.GetTodosByUserIdAsync(userId);
+        }
     }
 }

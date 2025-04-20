@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using ToDoApi.Data;
 using ToDoApi.Exceptions;
 using ToDoApi.Models;
@@ -9,6 +11,7 @@ namespace ToDoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ToDoController : ControllerBase
     {
         private readonly IToDoServies _toDoService;
@@ -18,7 +21,7 @@ namespace ToDoApi.Controllers
             _toDoService = toDoService;
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<ToDoItem>>> GetTodoItems()
         {
             var todos = await _toDoService.GetAllTodosAsync();
@@ -38,8 +41,17 @@ namespace ToDoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ToDoItem>> CreateToDoItem(ToDoItem todoItem)
         {
-            var todo = await _toDoService.CreateTodoAsync(todoItem);
 
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            todoItem.UserId = userId;
+
+            await _toDoService.CreateTodoAsync(todoItem);
             return CreatedAtAction(nameof(GetToDoItem), new { id = todoItem.Id }, todoItem);
         }
 
@@ -61,6 +73,20 @@ namespace ToDoApi.Controllers
                 return NotFound();
             _toDoService.DeleteTodoAsync(id);
             return NoContent();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ToDoItem>>> GetUserTodos()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var todos = await _toDoService.GetTodosByUserIdAsync(userId);
+            return Ok(todos);
         }
 
 
