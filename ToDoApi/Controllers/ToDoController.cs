@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -16,10 +17,12 @@ namespace ToDoApi.Controllers
     public class ToDoController : ControllerBase
     {
         private readonly IToDoServies _toDoService;
+        private readonly IMapper _mapper;
 
-        public ToDoController(IToDoServies toDoService)
+        public ToDoController(IToDoServies toDoService, IMapper mapper)
         {
             _toDoService = toDoService;
+            _mapper = mapper;
         }
 
         [HttpGet("all")]
@@ -34,9 +37,11 @@ namespace ToDoApi.Controllers
         {
             var todoItem = await _toDoService.GetTodoByIdAsync(id);
             if (todoItem == null)    
-                return NotFound(new {message = "ToDoItem not found"}); 
-            
-            return Ok(TodoDtoMapper.ToDto(todoItem));
+                return NotFound(new {message = "ToDoItem not found"});
+
+            var dto = _mapper.Map<TodoItemDto>(todoItem);
+
+            return Ok(dto);
         }
 
         [HttpPost]
