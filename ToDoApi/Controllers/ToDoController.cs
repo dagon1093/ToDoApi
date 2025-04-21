@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ToDoApi.Data;
+using ToDoApi.Dtos;
 using ToDoApi.Exceptions;
 using ToDoApi.Models;
 using ToDoApi.Services;
@@ -35,14 +36,14 @@ namespace ToDoApi.Controllers
             if (todoItem == null)    
                 return NotFound(new {message = "ToDoItem not found"}); 
             
-            return Ok(todoItem);
+            return Ok(TodoDtoMapper.ToDto(todoItem));
         }
 
         [HttpPost]
         public async Task<ActionResult<ToDoItem>> CreateToDoItem(ToDoItem todoItem)
         {
 
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+          var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
