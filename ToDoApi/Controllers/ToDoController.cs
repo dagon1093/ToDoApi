@@ -45,7 +45,7 @@ namespace ToDoApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ToDoItem>> CreateToDoItem(ToDoItem todoItem)
+        public async Task<ActionResult<TodoItemDto>> CreateToDoItem(CreateTodoItemDto dto)
         {
 
           var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -55,9 +55,7 @@ namespace ToDoApi.Controllers
                 return Unauthorized();
             }
 
-            todoItem.UserId = userId;
-
-            var createdItem = await _toDoService.CreateTodoAsync(todoItem, userId);
+            var createdItem = await _toDoService.CreateTodoAsync(dto, userId);
             return CreatedAtAction(nameof(GetToDoItem), new { id = createdItem.Id }, createdItem);
         }
 
