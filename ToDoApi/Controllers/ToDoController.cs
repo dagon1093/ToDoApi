@@ -57,8 +57,8 @@ namespace ToDoApi.Controllers
 
             todoItem.UserId = userId;
 
-            await _toDoService.CreateTodoAsync(todoItem);
-            return CreatedAtAction(nameof(GetToDoItem), new { id = todoItem.Id }, todoItem);
+            var createdItem = await _toDoService.CreateTodoAsync(todoItem, userId);
+            return CreatedAtAction(nameof(GetToDoItem), new { id = createdItem.Id }, createdItem);
         }
 
         [HttpPut("{id}")]
