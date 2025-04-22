@@ -1,4 +1,6 @@
-﻿using ToDoApi.Models;
+﻿using AutoMapper;
+using ToDoApi.Dtos;
+using ToDoApi.Models;
 using ToDoApi.Repositories;
 
 namespace ToDoApi.Services
@@ -6,10 +8,12 @@ namespace ToDoApi.Services
     public class ToDoService : IToDoServies
     {
         private readonly IToDoRepository _toDoRepository;
+        private readonly Mapper _mapper;
 
-        public ToDoService(IToDoRepository toDoRepository)
+        public ToDoService(IToDoRepository toDoRepository, Mapper mapper)
         {
             _toDoRepository = toDoRepository;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<ToDoItem>> GetAllTodosAsync()
@@ -22,9 +26,13 @@ namespace ToDoApi.Services
             return await _toDoRepository.GetByIdAsync(id);
         }
 
-        public async Task<ToDoItem> CreateTodoAsync(ToDoItem todoItem)
+        public async Task<TodoItemDto> CreateTodoAsync(CreateTodoItemDto dto, int userId)
         {
-            return await _toDoRepository.AddAsync(todoItem);
+            var todoItem = _mapper.Map<ToDoItem>(dto);
+            todoItem.UserId = userId;
+
+            _toDoRepository.AddAsync(todoItem);
+            return _mapper.Map<TodoItemDto>(todoItem);
         }
 
         public async Task UpdateTodoAsync(int id, ToDoItem todoItem)
