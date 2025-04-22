@@ -8,9 +8,9 @@ namespace ToDoApi.Services
     public class ToDoService : IToDoServies
     {
         private readonly IToDoRepository _toDoRepository;
-        private readonly Mapper _mapper;
+        private readonly IMapper _mapper;
 
-        public ToDoService(IToDoRepository toDoRepository, Mapper mapper)
+        public ToDoService(IToDoRepository toDoRepository, IMapper mapper)
         {
             _toDoRepository = toDoRepository;
             _mapper = mapper;
@@ -31,7 +31,7 @@ namespace ToDoApi.Services
             var todoItem = _mapper.Map<ToDoItem>(dto);
             todoItem.UserId = userId;
 
-            _toDoRepository.AddAsync(todoItem);
+            await _toDoRepository.AddAsync(todoItem);
             return _mapper.Map<TodoItemDto>(todoItem);
         }
 
