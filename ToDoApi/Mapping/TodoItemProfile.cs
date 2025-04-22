@@ -8,8 +8,8 @@ namespace ToDoApi.Mapping
     {
         public TodoItemProfile()
         {
+            CreateMap<CreateTodoItemDto, ToDoItem>();
             CreateMap<ToDoItem, TodoItemDto>();
-            CreateMap<TodoItemDto, ToDoItem>();
 
         }
     }

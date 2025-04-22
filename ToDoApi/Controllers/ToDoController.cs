@@ -65,7 +65,7 @@ namespace ToDoApi.Controllers
             if (id != todoItem.Id)
                 return BadRequest();
 
-            _toDoService.UpdateTodoAsync(id, todoItem);
+            await _toDoService.UpdateTodoAsync(id, todoItem);
             return NoContent();
         }
 
@@ -75,7 +75,7 @@ namespace ToDoApi.Controllers
             var todoItem = await _toDoService.GetTodoByIdAsync(id);
             if (todoItem == null)
                 return NotFound();
-            _toDoService.DeleteTodoAsync(id);
+            await _toDoService.DeleteTodoAsync(id);
             return NoContent();
         }
 
