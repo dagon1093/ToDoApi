@@ -10,5 +10,7 @@ namespace ToDoApi.Repositories
         Task UpdateAsync(ToDoItem todoItem);
         Task DeleteAsync(int id);
         Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId);
+        Task<List<ToDoItem>> GetUserTodosAsync(int userId, int page, int pageSize, Models.TaskStatus? status);
+        Task<int> GetUserTodosCountAsync(int userId, Models.TaskStatus? status);
     }
 }
