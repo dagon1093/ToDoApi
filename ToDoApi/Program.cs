@@ -9,6 +9,11 @@ using ToDoApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddMiniProfiler(options =>
+{
+    options.RouteBasePath = "/profiler"; // куда будет доступен интерфейс
+}).AddEntityFramework();
+
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -35,6 +40,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen();
 
+
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -45,6 +52,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiniProfiler();
 
 app.MapControllers();
 
