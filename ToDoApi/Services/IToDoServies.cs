@@ -11,5 +11,6 @@ namespace ToDoApi.Services
         Task UpdateTodoAsync(int id, ToDoItem todoItem);
         Task DeleteTodoAsync(int id);
         Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId);
+        Task<PagedResult<TodoItemDto>> GetTodosByUserIdAsync(int userId, int page, int pagesize, int? status);
     }
 }

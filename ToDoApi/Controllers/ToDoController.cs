@@ -80,8 +80,13 @@ namespace ToDoApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ToDoItem>>> GetUserTodos()
+        public async Task<ActionResult<IEnumerable<ToDoItem>>> GetUserTodos(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] int? status = null
+            )
         {
+
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
@@ -89,7 +94,7 @@ namespace ToDoApi.Controllers
                 return Unauthorized();
             }
 
-            var todos = await _toDoService.GetTodosByUserIdAsync(userId);
+            var todos = await _toDoService.GetTodosByUserIdAsync(userId, page, pageSize, status);
             return Ok(todos);
         }
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ToDoApi.Dtos;
 using ToDoApi.Models;
 using ToDoApi.Repositories;
@@ -50,6 +51,30 @@ namespace ToDoApi.Services
         public async Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId)
         {
             return await _toDoRepository.GetTodosByUserIdAsync(userId);
+        }
+        public async Task<PagedResult<TodoItemDto>> GetTodosByUserIdAsync(int userId, int page, int pagesize, int? status)
+        {
+            Models.TaskStatus? statusEnum = null;
+
+            if (status != null && Enum.IsDefined(typeof(Models.TaskStatus), status.Value))
+            {
+                statusEnum = (Models.TaskStatus)status.Value;
+            }
+
+            var totalCount = await _toDoRepository.GetUserTodosCountAsync(userId, statusEnum);
+            var items = await _toDoRepository.GetUserTodosAsync(userId, page, pagesize, statusEnum);
+            var dtoItems = _mapper.Map<List<TodoItemDto>>(items);   
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pagesize);
+
+            return new PagedResult<TodoItemDto>
+            {
+                Page = page,
+                PageSize = pagesize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                Items = dtoItems
+            };
         }
     }
 }

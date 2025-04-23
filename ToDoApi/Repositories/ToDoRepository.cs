@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ToDoApi.Data;
+using ToDoApi.Dtos;
 using ToDoApi.Exceptions;
 using ToDoApi.Models;
 
@@ -8,10 +10,12 @@ namespace ToDoApi.Repositories
     public class ToDoRepository : IToDoRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ToDoRepository(ApplicationDbContext context)
+        public ToDoRepository(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<ToDoItem>> GetAllAsync()
@@ -63,6 +67,34 @@ namespace ToDoApi.Repositories
                 .ToListAsync();
         }
 
-        
-    }
+        public async Task<List<ToDoItem>> GetUserTodosAsync(int userId, int page, int pageSize, Models.TaskStatus? status)
+        {
+            var query = _context.TodoItems.Where(t => t.UserId == userId);
+
+            if (status != null)
+            {
+                query = query.Where(t => t.Status == status);
+            }
+
+            return await query
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetUserTodosCountAsync(int userId, Models.TaskStatus? status)
+        {
+            var query = _context.TodoItems.Where(t => t.UserId == userId);
+
+            if (status != null)
+            {
+                query = query.Where(t => t.Status == status);
+            }
+
+            return await query.CountAsync();
+
+        }
+
+        }
 }
