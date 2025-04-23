@@ -8,6 +8,19 @@ namespace ToDoApi.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<ToDoItem>()
+                .HasIndex(t => t.Title)
+                .IsUnique();
+        }
+
         public DbSet<ToDoItem> TodoItems { get; set; }
         public DbSet<User> Users { get; set; } = null!;
     }

@@ -12,8 +12,8 @@ using ToDoApi.Data;
 namespace ToDoApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250420204017_AddUserIdToTodoItem")]
-    partial class AddUserIdToTodoItem
+    [Migration("20250423000323_RecreateMigrationWithIndex")]
+    partial class RecreateMigrationWithIndex
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,6 +43,9 @@ namespace ToDoApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("TodoItems");
@@ -69,6 +72,9 @@ namespace ToDoApi.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
