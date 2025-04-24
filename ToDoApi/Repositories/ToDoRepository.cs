@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using ToDoApi.Data;
 using ToDoApi.Dtos;
 using ToDoApi.Exceptions;
@@ -67,7 +68,7 @@ namespace ToDoApi.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<ToDoItem>> GetUserTodosAsync(int userId, int page, int pageSize, Models.TaskStatus? status)
+        public async Task<List<ToDoItem>> GetUserTodosAsync(int userId, int page, int pageSize, Models.TaskStatus? status, string sortBy, string order)
         {
             var query = _context.TodoItems.Where(t => t.UserId == userId);
 
@@ -76,8 +77,17 @@ namespace ToDoApi.Repositories
                 query = query.Where(t => t.Status == status);
             }
 
+            query = (sortBy.ToLower(), order.ToLower()) switch
+            {
+                ("title", "asc") => query.OrderBy(t => t.Title),
+                ("title", "desc") => query.OrderByDescending(t => t.Title),
+                ("status", "asc") => query.OrderBy(t => t.Status),
+                ("status", "desc") => query.OrderByDescending(t => t.Status),
+                ("createdat", "asc") => query.OrderBy(t => t.CreatedAt),
+                _ => query.OrderByDescending(t => t.CreatedAt)
+            };
+
             return await query
-                .OrderByDescending(t => t.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -91,6 +101,8 @@ namespace ToDoApi.Repositories
             {
                 query = query.Where(t => t.Status == status);
             }
+
+
 
             return await query.CountAsync();
 

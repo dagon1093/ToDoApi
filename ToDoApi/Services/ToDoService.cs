@@ -52,7 +52,7 @@ namespace ToDoApi.Services
         {
             return await _toDoRepository.GetTodosByUserIdAsync(userId);
         }
-        public async Task<PagedResult<TodoItemDto>> GetTodosByUserIdAsync(int userId, int page, int pagesize, int? status)
+        public async Task<PagedResult<TodoItemDto>> GetTodosByUserIdAsync(int userId, int page, int pagesize, int? status, string sortBy, string order)
         {
             Models.TaskStatus? statusEnum = null;
 
@@ -62,7 +62,7 @@ namespace ToDoApi.Services
             }
 
             var totalCount = await _toDoRepository.GetUserTodosCountAsync(userId, statusEnum);
-            var items = await _toDoRepository.GetUserTodosAsync(userId, page, pagesize, statusEnum);
+            var items = await _toDoRepository.GetUserTodosAsync(userId, page, pagesize, statusEnum, sortBy, order);
             var dtoItems = _mapper.Map<List<TodoItemDto>>(items);   
 
             var totalPages = (int)Math.Ceiling(totalCount / (double)pagesize);
