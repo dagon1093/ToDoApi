@@ -83,8 +83,10 @@ namespace ToDoApi.Controllers
         public async Task<ActionResult<IEnumerable<ToDoItem>>> GetUserTodos(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] int? status = null
-            )
+            [FromQuery] int? status = null,
+            [FromQuery] string sortBy = "createdAt",
+            [FromQuery] string order = "desc")
+            
         {
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -94,7 +96,7 @@ namespace ToDoApi.Controllers
                 return Unauthorized();
             }
 
-            var todos = await _toDoService.GetTodosByUserIdAsync(userId, page, pageSize, status);
+            var todos = await _toDoService.GetTodosByUserIdAsync(userId, page, pageSize, status, sortBy, order);
             return Ok(todos);
         }
 
