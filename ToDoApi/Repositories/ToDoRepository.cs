@@ -102,8 +102,6 @@ namespace ToDoApi.Repositories
                 query = query.Where(t => t.Status == status);
             }
 
-
-
             return await query.CountAsync();
 
         }
