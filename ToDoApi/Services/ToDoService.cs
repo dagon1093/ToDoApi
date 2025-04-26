@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ToDoApi.Dtos;
 using ToDoApi.Models;
 using ToDoApi.Repositories;
@@ -10,11 +11,13 @@ namespace ToDoApi.Services
     {
         private readonly IToDoRepository _toDoRepository;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache _cache;
 
-        public ToDoService(IToDoRepository toDoRepository, IMapper mapper)
+        public ToDoService(IToDoRepository toDoRepository, IMapper mapper, IMemoryCache cache)
         {
             _toDoRepository = toDoRepository;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<IEnumerable<ToDoItem>> GetAllTodosAsync()
@@ -48,12 +51,10 @@ namespace ToDoApi.Services
             await _toDoRepository.DeleteAsync(id);
         }
 
-        public async Task<IEnumerable<ToDoItem>> GetTodosByUserIdAsync(int userId)
-        {
-            return await _toDoRepository.GetTodosByUserIdAsync(userId);
-        }
         public async Task<PagedResult<TodoItemDto>> GetTodosByUserIdAsync(int userId, int page, int pagesize, int? status, string sortBy, string order)
         {
+            
+
             Models.TaskStatus? statusEnum = null;
 
             if (status != null && Enum.IsDefined(typeof(Models.TaskStatus), status.Value))
@@ -61,19 +62,40 @@ namespace ToDoApi.Services
                 statusEnum = (Models.TaskStatus)status.Value;
             }
 
-            var totalCount = await _toDoRepository.GetUserTodosCountAsync(userId, statusEnum);
-            var items = await _toDoRepository.GetUserTodosAsync(userId, page, pagesize, statusEnum, sortBy, order);
-            var dtoItems = _mapper.Map<List<TodoItemDto>>(items);   
+            var cacheKeyTotalCount = $"UserCountTodos_{userId}_{statusEnum}";
 
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pagesize);
+            if(_cache.TryGetValue(cacheKeyTotalCount, out int cachedUserTodosCount))
+            {
+                var totalCount = await _toDoRepository.GetUserTodosCountAsync(userId, statusEnum);
+
+                cachedUserTodosCount = totalCount;
+
+                _cache.Set(cacheKeyTotalCount, cachedUserTodosCount, TimeSpan.FromMinutes(5));
+            }
+
+
+            var cacheKey = $"UserTodos_{userId}_{page}_{pagesize}_{status}_{sortBy}_{order}";
+
+            if(!_cache.TryGetValue(cacheKey, out List<TodoItemDto> cachedTodos)) 
+            {
+                var items = await _toDoRepository.GetUserTodosAsync(userId, page, pagesize, statusEnum, sortBy, order);
+                var dtoItems = _mapper.Map<List<TodoItemDto>>(items);
+
+                cachedTodos = dtoItems.ToList();
+
+                _cache.Set(cacheKey, cachedTodos, TimeSpan.FromMinutes(5));
+            }
+              
+
+            var totalPages = (int)Math.Ceiling(cachedUserTodosCount / (double)pagesize);
 
             return new PagedResult<TodoItemDto>
             {
                 Page = page,
                 PageSize = pagesize,
-                TotalCount = totalCount,
+                TotalCount = cachedUserTodosCount,
                 TotalPages = totalPages,
-                Items = dtoItems
+                Items = cachedTodos
             };
         }
     }
