@@ -39,6 +39,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 
 
