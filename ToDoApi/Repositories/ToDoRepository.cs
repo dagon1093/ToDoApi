@@ -68,28 +68,11 @@ namespace ToDoApi.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<ToDoItem>> GetUserTodosAsync(int userId, int page, int pageSize, Models.TaskStatus? status, string sortBy, string order)
+        public async Task<List<ToDoItem>> GetAllUserTodosAsync(int userId)
         {
-            var query = _context.TodoItems.Where(t => t.UserId == userId);
-
-            if (status != null)
-            {
-                query = query.Where(t => t.Status == status);
-            }
-
-            query = (sortBy.ToLower(), order.ToLower()) switch
-            {
-                ("title", "asc") => query.OrderBy(t => t.Title),
-                ("title", "desc") => query.OrderByDescending(t => t.Title),
-                ("status", "asc") => query.OrderBy(t => t.Status),
-                ("status", "desc") => query.OrderByDescending(t => t.Status),
-                ("createdat", "asc") => query.OrderBy(t => t.CreatedAt),
-                _ => query.OrderByDescending(t => t.CreatedAt)
-            };
-
-            return await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            return await _context.TodoItems
+                .Where(t => t.UserId == userId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 

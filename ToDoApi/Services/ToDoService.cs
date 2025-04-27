@@ -36,6 +36,9 @@ namespace ToDoApi.Services
             todoItem.UserId = userId;
 
             await _toDoRepository.AddAsync(todoItem);
+
+            _cache.Remove($"UserTodos_{userId}");
+
             return _mapper.Map<TodoItemDto>(todoItem);
         }
 
@@ -53,7 +56,6 @@ namespace ToDoApi.Services
 
         public async Task<PagedResult<TodoItemDto>> GetTodosByUserIdAsync(int userId, int page, int pagesize, int? status, string sortBy, string order)
         {
-            
 
             Models.TaskStatus? statusEnum = null;
 
@@ -74,20 +76,36 @@ namespace ToDoApi.Services
             }
 
 
-            var cacheKey = $"UserTodos_{userId}_{page}_{pagesize}_{status}_{sortBy}_{order}";
+            var cacheKey = $"UserTodos_{userId}";
 
-            if(!_cache.TryGetValue(cacheKey, out List<TodoItemDto> cachedTodos)) 
+            if (!_cache.TryGetValue(cacheKey, out List<ToDoItem> cachedTodos)) 
             {
-                var items = await _toDoRepository.GetUserTodosAsync(userId, page, pagesize, statusEnum, sortBy, order);
-                var dtoItems = _mapper.Map<List<TodoItemDto>>(items);
-
-                cachedTodos = dtoItems.ToList();
+                cachedTodos = await _toDoRepository.GetAllUserTodosAsync(userId);
 
                 _cache.Set(cacheKey, cachedTodos, TimeSpan.FromMinutes(5));
             }
-              
+
+            var todos = cachedTodos.AsQueryable();
+
+            if (status.HasValue)
+            {
+                todos = todos.Where(t => t.Status == (Models.TaskStatus)status.Value);
+            }
+
+            todos = (sortBy?.ToLower(), order?.ToLower()) switch
+            {
+                ("title", "asc") => todos.OrderBy(t => t.Title),
+                ("title", "desc") => todos.OrderByDescending(t => t.Title),
+                ("createdat", "asc") => todos.OrderBy(t => t.CreatedAt),
+                _ => todos.OrderByDescending(t => t.CreatedAt)
+            };
+
 
             var totalPages = (int)Math.Ceiling(cachedUserTodosCount / (double)pagesize);
+
+            todos = todos.Skip((page - 1) * pagesize).Take(pagesize);
+
+            var mappedTodos = _mapper.Map<IEnumerable<TodoItemDto>>(todos).ToList();
 
             return new PagedResult<TodoItemDto>
             {
@@ -95,7 +113,7 @@ namespace ToDoApi.Services
                 PageSize = pagesize,
                 TotalCount = cachedUserTodosCount,
                 TotalPages = totalPages,
-                Items = cachedTodos
+                Items = mappedTodos
             };
         }
     }
